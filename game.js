@@ -1,10 +1,10 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+let canvas;
+let ctx;
 
-const startScreen = document.getElementById('startScreen');
-const gameOverScreen = document.getElementById('gameOverScreen');
-const winScreen = document.getElementById('winScreen');
-const pauseScreen = document.getElementById('pauseScreen');
+let startScreen;
+let gameOverScreen;
+let winScreen;
+let pauseScreen;
 
 let gameState = 'start';
 let currentLevel = 1;
@@ -12,7 +12,7 @@ let camera = { x: 0, y: 0 };
 let keys = {};
 let isPaused = false;
 let assetsLoaded = 0;
-let totalAssets = 14;
+let totalAssets = 0;
 let debugMode = false;
 
 const assets = {
@@ -41,27 +41,27 @@ const assets = {
     }
 };
 
-assets.background.src = 'assets/backgrounds/space-bg.jpg';
-assets.introBackground.src = 'assets/backgrounds/intro-bg.jpg';
-assets.playerSprite.src = 'assets/sprites/player.png';
-assets.orb.src = 'assets/sprites/orb.png';
-assets.portal.src = 'assets/sprites/portal.png';
-assets.enemy.src = 'assets/sprites/enemy.png';
-assets.heartFull.src = 'assets/sprites/heart-full.png';
-assets.prisoner.src = 'assets/sprites/prisoner.png';
-assets.queenCat.src = 'assets/sprites/queen-cat.png';
-assets.spike.src = 'assets/sprites/spike.png';
-assets.rockPlatform.src = 'assets/sprites/rock-platform.png';
-assets.sounds.menuMusic.src = 'assets/sounds/menu-music.mp3';
-assets.sounds.bgMusic.src = 'assets/sounds/bg-music.mp3';
-assets.sounds.collect.src = 'assets/sounds/collect.mp3';
-assets.sounds.death.src = 'assets/sounds/death.mp3';
-assets.sounds.fireball.src = 'assets/sounds/fireball.mp3';
-assets.sounds.hit.src = 'assets/sounds/hit.mp3';
-assets.sounds.jump.src = 'assets/sounds/jump.mp3';
-assets.sounds.portal.src = 'assets/sounds/portal.mp3';
-assets.sounds.win.src = 'assets/sounds/win.mp3';
-assets.sounds.enemyKill.src = 'assets/sounds/enemy-kill.mp3';
+assets.background.src = '/assets/backgrounds/space-bg.jpg';
+assets.introBackground.src = '/assets/backgrounds/intro-bg.jpg';
+assets.playerSprite.src = '/assets/sprites/player.png';
+assets.orb.src = '/assets/sprites/orb.png';
+assets.portal.src = '/assets/sprites/portal.png';
+assets.enemy.src = '/assets/sprites/enemy.png';
+assets.heartFull.src = '/assets/sprites/heart-full.png';
+assets.prisoner.src = '/assets/sprites/prisoner.png';
+assets.queenCat.src = '/assets/sprites/queen-cat.png';
+assets.spike.src = '/assets/sprites/spike.png';
+assets.rockPlatform.src = '/assets/sprites/rock-platform.png';
+assets.sounds.menuMusic.src = '/assets/sounds/menu-music.mp3';
+assets.sounds.bgMusic.src = '/assets/sounds/bg-music.mp3';
+assets.sounds.collect.src = '/assets/sounds/collect.mp3';
+assets.sounds.death.src = '/assets/sounds/death.mp3';
+assets.sounds.fireball.src = '/assets/sounds/fireball.mp3';
+assets.sounds.hit.src = '/assets/sounds/hit.mp3';
+assets.sounds.jump.src = '/assets/sounds/jump.mp3';
+assets.sounds.portal.src = '/assets/sounds/portal.mp3';
+assets.sounds.win.src = '/assets/sounds/win.mp3';
+assets.sounds.enemyKill.src = '/assets/sounds/enemy-kill.mp3';
 
 const player = {
     x: 100,
@@ -84,8 +84,8 @@ const player = {
     isDashing: false,
     dashTime: 0,
     score: 0,
-    frameWidth: 256,
-    frameHeight: 341,
+    frameWidth: 64,
+    frameHeight: 85,
     frameX: 0,
     frameY: 0,
     frameCount: 4,
@@ -100,373 +100,62 @@ const player = {
     dashTargetX: 0
 };
 
-const levels = [
-    {
-        platforms: [
-            { x: 0, y: 600, width: 300, height: 100 },
-            { x: 400, y: 550, width: 200, height: 20 },
-            { x: 700, y: 500, width: 200, height: 20 },
-            { x: 1000, y: 450, width: 200, height: 20 },
-            { x: 1300, y: 600, width: 300, height: 100 },
-            { x: 1700, y: 500, width: 200, height: 20 },
-            { x: 2100, y: 600, width: 400, height: 100 }
-        ],
-        enemies: [
-            { x: 450, y: 500, width: 50, height: 50, type: 'stationary', startX: 450 },
-            { x: 1050, y: 400, width: 50, height: 50, type: 'moving', startX: 1050, moveRange: 100, moveSpeed: 2 }
-        ],
-        orbs: [
-            { x: 500, y: 520, collected: false },
-            { x: 800, y: 470, collected: false },
-            { x: 1100, y: 420, collected: false }
-        ],
-        spikes: [],
-        prisoners: [
-            { x: 2200, y: 550, rescued: false, type: 'normal' }
-        ],
-        portal: { x: 2300, y: 450, active: false },
-        levelWidth: 2500
-    },
-    {
-        platforms: [
-            { x: 0, y: 600, width: 300, height: 100 },
-            { x: 350, y: 550, width: 150, height: 20 },
-            { x: 550, y: 500, width: 150, height: 20 },
-            { x: 750, y: 450, width: 150, height: 20 },
-            { x: 950, y: 400, width: 150, height: 20 },
-            { x: 1200, y: 500, width: 200, height: 20 },
-            { x: 1500, y: 450, width: 150, height: 20 },
-            { x: 1700, y: 400, width: 150, height: 20 },
-            { x: 1900, y: 350, width: 150, height: 20 },
-            { x: 2200, y: 600, width: 400, height: 100 }
-        ],
-        enemies: [
-            { x: 400, y: 500, width: 50, height: 50, type: 'stationary', startX: 400 },
-            { x: 800, y: 400, width: 50, height: 50, type: 'moving', startX: 800, moveRange: 100, moveSpeed: 2 },
-            { x: 1300, y: 450, width: 50, height: 50, type: 'stationary', startX: 1300 },
-            { x: 1950, y: 300, width: 50, height: 50, type: 'moving', startX: 1950, moveRange: 100, moveSpeed: 3 }
-        ],
-        orbs: [
-            { x: 425, y: 520, collected: false },
-            { x: 625, y: 470, collected: false },
-            { x: 825, y: 420, collected: false },
-            { x: 1025, y: 370, collected: false },
-            { x: 1300, y: 470, collected: false }
-        ],
-        spikes: [
-            { x: 600, y: 530, width: 30, height: 20 },
-            { x: 900, y: 380, width: 30, height: 20 },
-            { x: 1600, y: 430, width: 30, height: 20 },
-            { x: 1800, y: 380, width: 30, height: 20 }
-        ],
-        prisoners: [
-            { x: 1300, y: 450, rescued: false, type: 'normal' },
-            { x: 2300, y: 550, rescued: false, type: 'normal' }
-        ],
-        portal: { x: 2400, y: 450, active: false },
-        levelWidth: 2800,
-        canKillEnemies: true
-    },
-    {
-        platforms: [
-            { x: 0, y: 600, width: 300, height: 100 },
-            { x: 350, y: 550, width: 100, height: 20 },
-            { x: 500, y: 500, width: 100, height: 20 },
-            { x: 650, y: 450, width: 100, height: 20 },
-            { x: 800, y: 400, width: 100, height: 20 },
-            { x: 950, y: 350, width: 100, height: 20 },
-            { x: 1100, y: 400, width: 100, height: 20 },
-            { x: 1250, y: 450, width: 100, height: 20 },
-            { x: 1400, y: 500, width: 100, height: 20 },
-            { x: 1550, y: 550, width: 100, height: 20 },
-            { x: 1700, y: 500, width: 100, height: 20 },
-            { x: 1850, y: 450, width: 100, height: 20 },
-            { x: 2000, y: 400, width: 100, height: 20 },
-            { x: 2150, y: 350, width: 100, height: 20 },
-            { x: 2300, y: 600, width: 400, height: 100 }
-        ],
-        enemies: [
-            { x: 400, y: 500, width: 50, height: 50, type: 'stationary', startX: 400 },
-            { x: 700, y: 400, width: 50, height: 50, type: 'moving', startX: 700, moveRange: 100, moveSpeed: 2 },
-            { x: 1000, y: 300, width: 50, height: 50, type: 'stationary', startX: 1000 },
-            { x: 1300, y: 400, width: 50, height: 50, type: 'moving', startX: 1300, moveRange: 100, moveSpeed: 3 },
-            { x: 1600, y: 500, width: 50, height: 50, type: 'stationary', startX: 1600 },
-            { x: 1900, y: 350, width: 50, height: 50, type: 'moving', startX: 1900, moveRange: 100, moveSpeed: 4 }
-        ],
-        orbs: [
-            { x: 400, y: 520, collected: false },
-            { x: 550, y: 470, collected: false },
-            { x: 700, y: 420, collected: false },
-            { x: 850, y: 370, collected: false },
-            { x: 1000, y: 320, collected: false },
-            { x: 1150, y: 370, collected: false },
-            { x: 1300, y: 420, collected: false }
-        ],
-        spikes: [
-            { x: 600, y: 530, width: 30, height: 20 },
-            { x: 900, y: 380, width: 30, height: 20 },
-            { x: 1200, y: 330, width: 30, height: 20 },
-            { x: 1500, y: 480, width: 30, height: 20 },
-            { x: 1750, y: 430, width: 30, height: 20 },
-            { x: 2050, y: 330, width: 30, height: 20 }
-        ],
-        prisoners: [
-            { x: 850, y: 350, rescued: false, type: 'normal' },
-            { x: 1450, y: 450, rescued: false, type: 'normal' },
-            { x: 2400, y: 550, rescued: false, type: 'normal' }
-        ],
-        portal: { x: 2500, y: 450, active: false },
-        levelWidth: 3000,
-        canKillEnemies: true
-    },
-    {
-        platforms: [
-            { x: 0, y: 600, width: 300, height: 100 },
-            { x: 350, y: 550, width: 100, height: 20 },
-            { x: 500, y: 500, width: 100, height: 20 },
-            { x: 650, y: 450, width: 100, height: 20 },
-            { x: 800, y: 400, width: 100, height: 20 },
-            { x: 950, y: 350, width: 100, height: 20 },
-            { x: 1100, y: 300, width: 100, height: 20 },
-            { x: 1250, y: 350, width: 100, height: 20 },
-            { x: 1400, y: 400, width: 100, height: 20 },
-            { x: 1550, y: 450, width: 100, height: 20 },
-            { x: 1700, y: 500, width: 100, height: 20 },
-            { x: 1850, y: 550, width: 100, height: 20 },
-            { x: 2000, y: 500, width: 100, height: 20 },
-            { x: 2150, y: 450, width: 100, height: 20 },
-            { x: 2300, y: 400, width: 100, height: 20 },
-            { x: 2450, y: 350, width: 100, height: 20 },
-            { x: 2600, y: 600, width: 400, height: 100 }
-        ],
-        enemies: [
-            { x: 400, y: 500, width: 50, height: 50, type: 'stationary', startX: 400 },
-            { x: 700, y: 400, width: 50, height: 50, type: 'moving', startX: 700, moveRange: 100, moveSpeed: 2 },
-            { x: 1000, y: 300, width: 50, height: 50, type: 'stationary', startX: 1000 },
-            { x: 1300, y: 300, width: 50, height: 50, type: 'moving', startX: 1300, moveRange: 100, moveSpeed: 3 },
-            { x: 1600, y: 400, width: 50, height: 50, type: 'stationary', startX: 1600 },
-            { x: 1900, y: 400, width: 50, height: 50, type: 'moving', startX: 1900, moveRange: 100, moveSpeed: 4 },
-            { x: 2200, y: 350, width: 50, height: 50, type: 'stationary', startX: 2200 },
-            { x: 2500, y: 300, width: 50, height: 50, type: 'moving', startX: 2500, moveRange: 100, moveSpeed: 5 }
-        ],
-        orbs: [
-            { x: 400, y: 520, collected: false },
-            { x: 550, y: 470, collected: false },
-            { x: 700, y: 420, collected: false },
-            { x: 850, y: 370, collected: false },
-            { x: 1000, y: 320, collected: false },
-            { x: 1200, y: 270, collected: false },
-            { x: 1300, y: 320, collected: false },
-            { x: 1450, y: 370, collected: false },
-            { x: 1600, y: 420, collected: false }
-        ],
-        spikes: [
-            { x: 600, y: 530, width: 30, height: 20 },
-            { x: 900, y: 380, width: 30, height: 20 },
-            { x: 1200, y: 280, width: 30, height: 20 },
-            { x: 1500, y: 380, width: 30, height: 20 },
-            { x: 1800, y: 480, width: 30, height: 20 },
-            { x: 2100, y: 330, width: 30, height: 20 },
-            { x: 2400, y: 280, width: 30, height: 20 }
-        ],
-        prisoners: [
-            { x: 400, y: 500, rescued: false, type: 'normal' },
-            { x: 1150, y: 250, rescued: false, type: 'normal' },
-            { x: 1650, y: 400, rescued: false, type: 'normal' },
-            { x: 2150, y: 400, rescued: false, type: 'normal' }
-        ],
-        portal: { x: 2800, y: 450, active: false },
-        levelWidth: 3200,
-        canKillEnemies: true
-    },
-    {
-        platforms: [
-            { x: 0, y: 600, width: 300, height: 100 },
-            { x: 350, y: 550, width: 100, height: 20 },
-            { x: 500, y: 500, width: 100, height: 20 },
-            { x: 650, y: 450, width: 100, height: 20 },
-            { x: 800, y: 400, width: 100, height: 20 },
-            { x: 950, y: 350, width: 100, height: 20 },
-            { x: 1100, y: 300, width: 100, height: 20 },
-            { x: 1250, y: 250, width: 100, height: 20 },
-            { x: 1400, y: 200, width: 100, height: 20 },
-            { x: 1550, y: 250, width: 100, height: 20 },
-            { x: 1700, y: 300, width: 100, height: 20 },
-            { x: 1850, y: 350, width: 100, height: 20 },
-            { x: 2000, y: 400, width: 100, height: 20 },
-            { x: 2150, y: 450, width: 100, height: 20 },
-            { x: 2300, y: 500, width: 100, height: 20 },
-            { x: 2450, y: 550, width: 100, height: 20 },
-            { x: 2600, y: 500, width: 100, height: 20 },
-            { x: 2750, y: 450, width: 100, height: 20 },
-            { x: 2900, y: 400, width: 100, height: 20 },
-            { x: 3050, y: 350, width: 100, height: 20 },
-            { x: 3200, y: 600, width: 400, height: 100 }
-        ],
-        enemies: [
-            { x: 400, y: 500, width: 50, height: 50, type: 'stationary', startX: 400 },
-            { x: 700, y: 400, width: 50, height: 50, type: 'moving', startX: 700, moveRange: 100, moveSpeed: 2 },
-            { x: 1000, y: 300, width: 50, height: 50, type: 'stationary', startX: 1000 },
-            { x: 1300, y: 200, width: 50, height: 50, type: 'moving', startX: 1300, moveRange: 100, moveSpeed: 3 },
-            { x: 1600, y: 200, width: 50, height: 50, type: 'stationary', startX: 1600 },
-            { x: 1900, y: 350, width: 50, height: 50, type: 'moving', startX: 1900, moveRange: 100, moveSpeed: 4 },
-            { x: 2200, y: 400, width: 50, height: 50, type: 'stationary', startX: 2200 },
-            { x: 2500, y: 450, width: 50, height: 50, type: 'moving', startX: 2500, moveRange: 100, moveSpeed: 5 },
-            { x: 2800, y: 350, width: 50, height: 50, type: 'stationary', startX: 2800 },
-            { x: 3100, y: 300, width: 50, height: 50, type: 'moving', startX: 3100, moveRange: 100, moveSpeed: 6 }
-        ],
-        orbs: [
-            { x: 400, y: 520, collected: false },
-            { x: 550, y: 470, collected: false },
-            { x: 700, y: 420, collected: false },
-            { x: 850, y: 370, collected: false },
-            { x: 1000, y: 320, collected: false },
-            { x: 1150, y: 270, collected: false },
-            { x: 1300, y: 220, collected: false },
-            { x: 1450, y: 170, collected: false },
-            { x: 1600, y: 220, collected: false },
-            { x: 1800, y: 320, collected: false },
-            { x: 2050, y: 370, collected: false }
-        ],
-        spikes: [
-            { x: 600, y: 530, width: 30, height: 20 },
-            { x: 900, y: 380, width: 30, height: 20 },
-            { x: 1200, y: 280, width: 30, height: 20 },
-            { x: 1500, y: 180, width: 30, height: 20 },
-            { x: 1800, y: 330, width: 30, height: 20 },
-            { x: 2100, y: 380, width: 30, height: 20 },
-            { x: 2400, y: 430, width: 30, height: 20 },
-            { x: 2700, y: 330, width: 30, height: 20 },
-            { x: 3000, y: 280, width: 30, height: 20 }
-        ],
-        prisoners: [
-            { x: 850, y: 350, rescued: false, type: 'normal' },
-            { x: 1450, y: 150, rescued: false, type: 'normal' },
-            { x: 2050, y: 350, rescued: false, type: 'normal' },
-            { x: 2800, y: 400, rescued: false, type: 'normal' },
-            { x: 3300, y: 550, rescued: false, type: 'queen' }
-        ],
-        portal: { x: 3400, y: 450, active: false },
-        levelWidth: 3600,
-        canKillEnemies: true
-    }
-];
-
-let currentLevelData = {};
-const particles = [];
-const MAX_PARTICLES = 300;
-
-function assetLoaded() {
-    assetsLoaded++;
-    console.log(`Asset loaded: ${assetsLoaded}/${totalAssets}`);
-    if (assetsLoaded === totalAssets) {
-        console.log("All assets loaded, initializing game");
-        startScreen.style.backgroundImage = `url(${assets.introBackground.src})`;
-        startScreen.style.backgroundSize = 'cover';
-        startScreen.style.backgroundPosition = 'center';
-        init();
-    }
+function buildLevel({ platforms, enemies = [], orbs = [], spikes = [], prisoners = [], portalX, portalY = 450, levelWidth, canKillEnemies = false }) {
+    return {
+        platforms: platforms.map(([x, y, width, height = 20]) => ({ x, y, width, height })),
+        enemies: enemies.map((enemy) => {
+            const [x, y, width, height, type, startX, moveRange, moveSpeed] = enemy;
+            return type === 'moving'
+                ? { x, y, width, height, type, startX, moveRange, moveSpeed }
+                : { x, y, width, height, type, startX: startX ?? x };
+        }),
+        orbs: orbs.map(([x, y]) => ({ x, y, collected: false })),
+        spikes: spikes.map(([x, y, width, height = 20]) => ({ x, y, width, height })),
+        prisoners: prisoners.map(([x, y, type = 'normal']) => ({ x, y, rescued: false, type })),
+        portal: { x: portalX, y: portalY, active: false },
+        levelWidth,
+        canKillEnemies
+    };
 }
 
-function setupAssetLoading() {
-    assets.background.onload = assetLoaded;
-    assets.background.onerror = function() {
-        console.error("Failed to load background image");
-        assetLoaded();
-    };
-    
-    assets.introBackground.onload = assetLoaded;
-    assets.introBackground.onerror = function() {
-        console.error("Failed to load intro background image");
-        assetLoaded();
-    };
-    
-    assets.playerSprite.onload = assetLoaded;
-    assets.playerSprite.onerror = function() {
-        console.error("Failed to load player sprite");
-        assetLoaded();
-    };
-    
-    assets.orb.onload = assetLoaded;
-    assets.orb.onerror = function() {
-        console.error("Failed to load orb sprite");
-        assetLoaded();
-    };
-    
-    assets.portal.onload = assetLoaded;
-    assets.portal.onerror = function() {
-        console.error("Failed to load portal sprite");
-        assetLoaded();
-    };
-    
-    assets.enemy.onload = assetLoaded;
-    assets.enemy.onerror = function() {
-        console.error("Failed to load enemy sprite");
-        assetLoaded();
-    };
-    
-    assets.heartFull.onload = assetLoaded;
-    assets.heartFull.onerror = function() {
-        console.error("Failed to load heart sprite");
-        assetLoaded();
-    };
-    
-    assets.prisoner.onload = assetLoaded;
-    assets.prisoner.onerror = function() {
-        console.error("Failed to load prisoner sprite");
-        assetLoaded();
-    };
-    
-    assets.queenCat.onload = assetLoaded;
-    assets.queenCat.onerror = function() {
-        console.error("Failed to load queen cat sprite");
-        assetLoaded();
-    };
-    
-    assets.spike.onload = assetLoaded;
-    assets.spike.onerror = function() {
-        console.error("Failed to load spike sprite");
-        assetLoaded();
-    };
-    
-    assets.rockPlatform.onload = assetLoaded;
-    assets.rockPlatform.onerror = function() {
-        console.error("Failed to load rock platform sprite");
-        assetLoaded();
-    };
-    
-    function setupSoundLoading(sound) {
-        sound.oncanplaythrough = assetLoaded;
-        sound.onerror = function() {
-            console.error("Failed to load sound: " + sound.src);
-            assetLoaded();
-        };
+function bindUI() {
+    canvas = document.getElementById('gameCanvas');
+    if (!canvas) {
+        throw new Error('Game canvas not found');
     }
-    
-    setupSoundLoading(assets.sounds.menuMusic);
-    setupSoundLoading(assets.sounds.bgMusic);
-    setupSoundLoading(assets.sounds.collect);
-    setupSoundLoading(assets.sounds.death);
-    setupSoundLoading(assets.sounds.fireball);
-    setupSoundLoading(assets.sounds.hit);
-    setupSoundLoading(assets.sounds.jump);
-    setupSoundLoading(assets.sounds.portal);
-    setupSoundLoading(assets.sounds.win);
-    setupSoundLoading(assets.sounds.enemyKill);
+
+    ctx = canvas.getContext('2d');
+    if (!ctx) {
+        throw new Error('Unable to get 2D rendering context');
+    }
+
+    startScreen = document.getElementById('startScreen');
+    gameOverScreen = document.getElementById('gameOverScreen');
+    winScreen = document.getElementById('winScreen');
+    pauseScreen = document.getElementById('pauseScreen');
+
+    const startButton = document.getElementById('startButton');
+    const restartButton = document.getElementById('restartButton');
+    const playAgainButton = document.getElementById('playAgainButton');
+
+    startButton?.addEventListener('click', startGame);
+    restartButton?.addEventListener('click', restartGame);
+    playAgainButton?.addEventListener('click', restartGame);
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', (e) => {
+        keys[e.key] = false;
+    });
 }
 
-document.getElementById('startButton').addEventListener('click', startGame);
-document.getElementById('restartButton').addEventListener('click', restartGame);
-document.getElementById('playAgainButton').addEventListener('click', restartGame);
-
-document.addEventListener('keydown', (e) => {
+function handleKeyDown(e) {
     keys[e.key] = true;
-    
+
     if (e.key === 'd' || e.key === 'D') {
         debugMode = !debugMode;
-        console.log("Debug mode:", debugMode ? "ON" : "OFF");
+        console.log('Debug mode:', debugMode ? 'ON' : 'OFF');
     }
-    
+
     if (e.key === 'p' || e.key === 'P') {
         if (gameState === 'playing') {
             isPaused = !isPaused;
@@ -481,21 +170,144 @@ document.addEventListener('keydown', (e) => {
             }
         }
     }
-});
+}
 
-document.addEventListener('keyup', (e) => {
-    keys[e.key] = false;
-});
+function syncSpriteMetrics() {
+    if (assets.playerSprite.complete && assets.playerSprite.naturalWidth) {
+        const columns = 4;
+        const rows = 3;
+        player.frameCount = columns;
+        player.frameWidth = Math.floor(assets.playerSprite.naturalWidth / columns);
+        player.frameHeight = Math.floor(assets.playerSprite.naturalHeight / rows);
+    }
+}
+
+const levels = [
+    buildLevel({
+        platforms: [[0, 600, 300, 100], [400, 550, 200, 20], [700, 500, 200, 20], [1000, 450, 200, 20], [1300, 600, 300, 100], [1700, 500, 200, 20], [2100, 600, 400, 100]],
+        enemies: [[450, 500, 50, 50, 'stationary', 450], [1050, 400, 50, 50, 'moving', 1050, 100, 2]],
+        orbs: [[500, 520], [800, 470], [1100, 420]],
+        prisoners: [[2200, 550]],
+        portalX: 2300,
+        levelWidth: 2500
+    }),
+    buildLevel({
+        platforms: [[0, 600, 300, 100], [350, 550, 150, 20], [550, 500, 150, 20], [750, 450, 150, 20], [950, 400, 150, 20], [1200, 500, 200, 20], [1500, 450, 150, 20], [1700, 400, 150, 20], [1900, 350, 150, 20], [2200, 600, 400, 100]],
+        enemies: [[400, 500, 50, 50, 'stationary', 400], [800, 400, 50, 50, 'moving', 800, 100, 2], [1300, 450, 50, 50, 'stationary', 1300], [1950, 300, 50, 50, 'moving', 1950, 100, 3]],
+        orbs: [[425, 520], [625, 470], [825, 420], [1025, 370], [1300, 470]],
+        spikes: [[600, 530, 30, 20], [900, 380, 30, 20], [1600, 430, 30, 20], [1800, 380, 30, 20]],
+        prisoners: [[1300, 450], [2300, 550]],
+        portalX: 2400,
+        levelWidth: 2800,
+        canKillEnemies: true
+    }),
+    buildLevel({
+        platforms: [[0, 600, 300, 100], [350, 550, 100, 20], [500, 500, 100, 20], [650, 450, 100, 20], [800, 400, 100, 20], [950, 350, 100, 20], [1100, 400, 100, 20], [1250, 450, 100, 20], [1400, 500, 100, 20], [1550, 550, 100, 20], [1700, 500, 100, 20], [1850, 450, 100, 20], [2000, 400, 100, 20], [2150, 350, 100, 20], [2300, 600, 400, 100]],
+        enemies: [[400, 500, 50, 50, 'stationary', 400], [700, 400, 50, 50, 'moving', 700, 100, 2], [1000, 300, 50, 50, 'stationary', 1000], [1300, 400, 50, 50, 'moving', 1300, 100, 3], [1600, 500, 50, 50, 'stationary', 1600], [1900, 350, 50, 50, 'moving', 1900, 100, 4]],
+        orbs: [[400, 520], [550, 470], [700, 420], [850, 370], [1000, 320], [1150, 370], [1300, 420]],
+        spikes: [[600, 530, 30, 20], [900, 380, 30, 20], [1200, 330, 30, 20], [1500, 480, 30, 20], [1750, 430, 30, 20], [2050, 330, 30, 20]],
+        prisoners: [[850, 350], [1450, 450], [2400, 550]],
+        portalX: 2500,
+        levelWidth: 3000,
+        canKillEnemies: true
+    }),
+    buildLevel({
+        platforms: [[0, 600, 300, 100], [350, 550, 100, 20], [500, 500, 100, 20], [650, 450, 100, 20], [800, 400, 100, 20], [950, 350, 100, 20], [1100, 300, 100, 20], [1250, 350, 100, 20], [1400, 400, 100, 20], [1550, 450, 100, 20], [1700, 500, 100, 20], [1850, 550, 100, 20], [2000, 500, 100, 20], [2150, 450, 100, 20], [2300, 400, 100, 20], [2450, 350, 100, 20], [2600, 600, 400, 100]],
+        enemies: [[400, 500, 50, 50, 'stationary', 400], [700, 400, 50, 50, 'moving', 700, 100, 2], [1000, 300, 50, 50, 'stationary', 1000], [1300, 300, 50, 50, 'moving', 1300, 100, 3], [1600, 400, 50, 50, 'stationary', 1600], [1900, 400, 50, 50, 'moving', 1900, 100, 4], [2200, 350, 50, 50, 'stationary', 2200], [2500, 300, 50, 50, 'moving', 2500, 100, 5]],
+        orbs: [[400, 520], [550, 470], [700, 420], [850, 370], [1000, 320], [1200, 270], [1300, 320], [1450, 370], [1600, 420]],
+        spikes: [[600, 530, 30, 20], [900, 380, 30, 20], [1200, 280, 30, 20], [1500, 380, 30, 20], [1800, 480, 30, 20], [2100, 330, 30, 20], [2400, 280, 30, 20]],
+        prisoners: [[400, 500], [1150, 250], [1650, 400], [2150, 400]],
+        portalX: 2800,
+        levelWidth: 3200,
+        canKillEnemies: true
+    }),
+    buildLevel({
+        platforms: [[0, 600, 300, 100], [350, 550, 100, 20], [500, 500, 100, 20], [650, 450, 100, 20], [800, 400, 100, 20], [950, 350, 100, 20], [1100, 300, 100, 20], [1250, 250, 100, 20], [1400, 200, 100, 20], [1550, 250, 100, 20], [1700, 300, 100, 20], [1850, 350, 100, 20], [2000, 400, 100, 20], [2150, 450, 100, 20], [2300, 500, 100, 20], [2450, 550, 100, 20], [2600, 500, 100, 20], [2750, 450, 100, 20], [2900, 400, 100, 20], [3050, 350, 100, 20], [3200, 600, 400, 100]],
+        enemies: [[400, 500, 50, 50, 'stationary', 400], [700, 400, 50, 50, 'moving', 700, 100, 2], [1000, 300, 50, 50, 'stationary', 1000], [1300, 200, 50, 50, 'moving', 1300, 100, 3], [1600, 200, 50, 50, 'stationary', 1600], [1900, 350, 50, 50, 'moving', 1900, 100, 4], [2200, 400, 50, 50, 'stationary', 2200], [2500, 450, 50, 50, 'moving', 2500, 100, 5], [2800, 350, 50, 50, 'stationary', 2800], [3100, 300, 50, 50, 'moving', 3100, 100, 6]],
+        orbs: [[400, 520], [550, 470], [700, 420], [850, 370], [1000, 320], [1150, 270], [1300, 220], [1450, 170], [1600, 220], [1800, 320], [2050, 370]],
+        spikes: [[600, 530, 30, 20], [900, 380, 30, 20], [1200, 280, 30, 20], [1500, 180, 30, 20], [1800, 330, 30, 20], [2100, 380, 30, 20], [2400, 430, 30, 20], [2700, 330, 30, 20], [3000, 280, 30, 20]],
+        prisoners: [[850, 350], [1450, 150], [2050, 350], [2800, 400], [3300, 550, 'queen']],
+        portalX: 3400,
+        levelWidth: 3600,
+        canKillEnemies: true
+    })
+];
+
+let currentLevelData = {};
+const particles = [];
+const MAX_PARTICLES = 300;
+
+function assetLoaded() {
+    assetsLoaded++;
+    syncSpriteMetrics();
+    console.log(`Asset loaded: ${assetsLoaded}/${totalAssets}`);
+    if (assetsLoaded === totalAssets) {
+        console.log("All assets loaded, initializing game");
+        startScreen.style.backgroundImage = `url(${assets.introBackground.src})`;
+        startScreen.style.backgroundSize = 'cover';
+        startScreen.style.backgroundPosition = 'center';
+        init();
+    }
+}
+
+function setupAssetLoading() {
+    const imageAssets = [
+        [assets.background, 'background image'],
+        [assets.introBackground, 'intro background image'],
+        [assets.playerSprite, 'player sprite'],
+        [assets.orb, 'orb sprite'],
+        [assets.portal, 'portal sprite'],
+        [assets.enemy, 'enemy sprite'],
+        [assets.heartFull, 'heart sprite'],
+        [assets.prisoner, 'prisoner sprite'],
+        [assets.queenCat, 'queen cat sprite'],
+        [assets.spike, 'spike sprite'],
+        [assets.rockPlatform, 'rock platform sprite']
+    ];
+
+    imageAssets.forEach(([asset, label]) => {
+        asset.onload = assetLoaded;
+        asset.onerror = () => {
+            console.error(`Failed to load ${label}`);
+            assetLoaded();
+        };
+    });
+
+    const soundAssets = [
+        assets.sounds.menuMusic,
+        assets.sounds.bgMusic,
+        assets.sounds.collect,
+        assets.sounds.death,
+        assets.sounds.fireball,
+        assets.sounds.hit,
+        assets.sounds.jump,
+        assets.sounds.portal,
+        assets.sounds.win,
+        assets.sounds.enemyKill
+    ];
+
+    totalAssets = imageAssets.length + soundAssets.length;
+
+    soundAssets.forEach((sound) => {
+        sound.oncanplaythrough = assetLoaded;
+        sound.onerror = () => {
+            console.error(`Failed to load sound: ${sound.src}`);
+            assetLoaded();
+        };
+    });
+}
+
+function setScreenVisibility(screen, visible) {
+    screen.classList.toggle('active', visible);
+    screen.classList.toggle('hidden', !visible);
+}
 
 function init() {
     console.log("Initializing game");
-    startScreen.classList.add('active');
-    gameOverScreen.classList.remove('active');
-    gameOverScreen.classList.add('hidden');
-    winScreen.classList.remove('active');
-    winScreen.classList.add('hidden');
-    pauseScreen.classList.remove('active');
-    pauseScreen.classList.add('hidden');
+    setScreenVisibility(startScreen, true);
+    setScreenVisibility(gameOverScreen, false);
+    setScreenVisibility(winScreen, false);
+    setScreenVisibility(pauseScreen, false);
     
     assets.sounds.menuMusic.loop = true;
     assets.sounds.menuMusic.volume = 0.3;
@@ -518,8 +330,7 @@ function init() {
 function startGame() {
     console.log("Starting game");
     gameState = 'playing';
-    startScreen.classList.remove('active');
-    startScreen.classList.add('hidden');
+    setScreenVisibility(startScreen, false);
     currentLevel = 1;
     resetPlayer();
     clearParticles();
@@ -536,14 +347,10 @@ function restartGame() {
     console.log("Restarting game from level", currentLevel);
     gameState = 'playing';
     
-    gameOverScreen.classList.remove('active');
-    gameOverScreen.classList.add('hidden');
-    winScreen.classList.remove('active');
-    winScreen.classList.add('hidden');
-    startScreen.classList.remove('active');
-    startScreen.classList.add('hidden');
-    pauseScreen.classList.remove('active');
-    pauseScreen.classList.add('hidden');
+    setScreenVisibility(gameOverScreen, false);
+    setScreenVisibility(winScreen, false);
+    setScreenVisibility(startScreen, false);
+    setScreenVisibility(pauseScreen, false);
     
     resetPlayer();
     clearParticles();
@@ -587,6 +394,29 @@ function resetPlayer() {
     player.canKillEnemies = false;
 }
 
+function placeLevelObjects(levelData) {
+    const findPlatform = (x, y) => {
+        return levelData.platforms.find((platform) => x >= platform.x && x <= platform.x + platform.width && y >= platform.y - 80 && y <= platform.y + platform.height);
+    };
+
+    for (const orb of levelData.orbs) {
+        const platform = findPlatform(orb.x, orb.y);
+        if (platform) orb.y = platform.y - 35;
+        orb.collected = false;
+    }
+
+    for (const prisoner of levelData.prisoners) {
+        const platform = findPlatform(prisoner.x, prisoner.y);
+        if (platform) prisoner.y = platform.y - 45;
+        prisoner.rescued = false;
+    }
+
+    for (const spike of levelData.spikes) {
+        const platform = findPlatform(spike.x, spike.y);
+        if (platform) spike.y = platform.y - spike.height;
+    }
+}
+
 function loadLevel(levelNum) {
     console.log(`Loading level ${levelNum}`);
     if (levelNum < 1 || levelNum > levels.length) {
@@ -609,12 +439,7 @@ function loadLevel(levelNum) {
         }
     }
     
-    for (const orb of currentLevelData.orbs) {
-        orb.collected = false;
-    }
-    for (const prisoner of currentLevelData.prisoners) {
-        prisoner.rescued = false;
-    }
+    placeLevelObjects(currentLevelData);
     currentLevelData.portal.active = false;
     
     player.canKillEnemies = currentLevelData.canKillEnemies || false;
@@ -1241,7 +1066,7 @@ function render() {
     for (const orb of currentLevelData.orbs) {
         if (!orb.collected && assets.orb.complete) {
             ctx.save();
-            ctx.translate(orb.x + 15, orb.y + 15);
+            ctx.translate(orb.x + 16, orb.y + 16);
             
             const scale = 1 + Math.sin(Date.now() / 200) * 0.2;
             ctx.scale(scale, scale);
@@ -1253,10 +1078,10 @@ function render() {
             
             ctx.drawImage(
                 assets.orb,
-                -15,
-                -15,
-                30,
-                30
+                -16,
+                -16,
+                32,
+                32
             );
             
             ctx.restore();
@@ -1268,7 +1093,7 @@ function render() {
             ctx.save();
             
             const scale = 1 + Math.sin(Date.now() / 500) * 0.1;
-            ctx.translate(prisoner.x + 25, prisoner.y + 25);
+            ctx.translate(prisoner.x + 24, prisoner.y + 24);
             ctx.scale(scale, scale);
             
             ctx.shadowColor = prisoner.type === 'queen' ? '#ff00ff' : '#00ffcc';
@@ -1277,18 +1102,18 @@ function render() {
             if (prisoner.type === 'queen' && assets.queenCat.complete) {
                 ctx.drawImage(
                     assets.queenCat,
-                    -25,
-                    -25,
-                    50,
-                    50
+                    -24,
+                    -24,
+                    48,
+                    48
                 );
             } else if (assets.prisoner.complete) {
                 ctx.drawImage(
                     assets.prisoner,
-                    -25,
-                    -25,
-                    50,
-                    50
+                    -24,
+                    -24,
+                    48,
+                    48
                 );
             }
             
@@ -1322,40 +1147,7 @@ function render() {
     for (const trail of player.trail) {
         ctx.save();
         ctx.globalAlpha = trail.alpha * 0.5;
-        
-        if (player.facing === 'left') {
-            ctx.translate(trail.x + player.width, trail.y);
-            ctx.scale(-1, 1);
-            
-            if (assets.playerSprite.complete) {
-                ctx.drawImage(
-                    assets.playerSprite,
-                    player.frameX * player.frameWidth,
-                    player.frameY * player.frameHeight,
-                    player.frameWidth,
-                    player.frameHeight,
-                    0,
-                    0,
-                    player.width,
-                    player.height
-                );
-            }
-        } else {
-            if (assets.playerSprite.complete) {
-                ctx.drawImage(
-                    assets.playerSprite,
-                    player.frameX * player.frameWidth,
-                    player.frameY * player.frameHeight,
-                    player.frameWidth,
-                    player.frameHeight,
-                    trail.x,
-                    trail.y,
-                    player.width,
-                    player.height
-                );
-            }
-        }
-        
+        drawPlayerSprite(trail.x, trail.y, player.facing === 'left');
         ctx.restore();
     }
     
@@ -1363,40 +1155,7 @@ function render() {
         ctx.globalAlpha = 0.5;
     }
     
-    if (player.facing === 'left') {
-        ctx.save();
-        ctx.translate(player.x + player.width, player.y);
-        ctx.scale(-1, 1);
-        
-        if (assets.playerSprite.complete) {
-            ctx.drawImage(
-                assets.playerSprite,
-                player.frameX * player.frameWidth,
-                player.frameY * player.frameHeight,
-                player.frameWidth,
-                player.frameHeight,
-                0,
-                0,
-                player.width,
-                player.height
-            );
-        }
-        ctx.restore();
-    } else {
-        if (assets.playerSprite.complete) {
-            ctx.drawImage(
-                assets.playerSprite,
-                player.frameX * player.frameWidth,
-                player.frameY * player.frameHeight,
-                player.frameWidth,
-                player.frameHeight,
-                player.x,
-                player.y,
-                player.width,
-                player.height
-            );
-        }
-    }
+    drawPlayerSprite(player.x, player.y, player.facing === 'left');
     
     ctx.globalAlpha = 1;
     ctx.restore();
@@ -1440,6 +1199,31 @@ function render() {
     }
     
     drawUI();
+}
+
+function drawPlayerSprite(x, y, flipX = false) {
+    if (!assets.playerSprite.complete) return;
+
+    const frameWidth = player.frameWidth || player.width;
+    const frameHeight = player.frameHeight || player.height;
+    const sx = player.frameX * frameWidth;
+    const sy = player.frameY * frameHeight;
+
+    ctx.save();
+    ctx.translate(x, y);
+    if (flipX) ctx.scale(-1, 1);
+    ctx.drawImage(
+        assets.playerSprite,
+        sx,
+        sy,
+        frameWidth,
+        frameHeight,
+        0,
+        0,
+        player.width,
+        player.height
+    );
+    ctx.restore();
 }
 
 function drawUI() {
@@ -1517,8 +1301,14 @@ function gameLoop() {
     }
 }
 
-window.onload = () => {
-    console.log("Page loaded, setting up asset loading");
+function initializeGame() {
+    console.log('Page loaded, setting up asset loading');
+    bindUI();
     setupAssetLoading();
-    assetLoaded(); 
-};
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initializeGame();
+} else {
+    window.addEventListener('DOMContentLoaded', initializeGame);
+}

@@ -1,44 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AstroNeko: Ninja of the Stars</title>
-    <link rel="stylesheet" href="styles/style.css">
-</head>
-<body>
-    <div class="game-container">
-        <canvas id="gameCanvas" width="1200" height="700"></canvas>
-        
-        
-        <div id="startScreen" class="screen active">
-            <div class="intro-background"></div>
-            <div class="game-title">
-                <h1>ASTRONEKO</h1>
-                <h2>NINJA OF THE STARS</h2>
-            </div>
-            <button id="startButton" class="button">START</button>
-        </div>
-        
-        
-        <div id="gameOverScreen" class="screen hidden">
-            <h2>GAME OVER</h2>
-            <button id="restartButton" class="button">RESTART</button>
-        </div>
-        
-        
-        <div id="winScreen" class="screen hidden">
-            <h2>YOU WIN!</h2>
-            <button id="playAgainButton" class="button">PLAY AGAIN</button>
-        </div>
-        
-     
-        <div id="pauseScreen" class="screen hidden">
-            <h2>PAUSED</h2>
-            <p>Press P to resume</p>
-        </div>
-    </div>
-
-    <script src="game.js"></script>
-</body>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
