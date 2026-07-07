@@ -15,6 +15,9 @@ let assetsLoaded = 0;
 let totalAssets = 0;
 let debugMode = false;
 
+const BASE_URL = import.meta.env.BASE_URL || '/';
+const ASSET_BASE = BASE_URL.endsWith('/') ? `${BASE_URL}assets/` : `${BASE_URL}/assets/`;
+
 const assets = {
     background: new Image(),
     introBackground: new Image(),
@@ -41,27 +44,27 @@ const assets = {
     }
 };
 
-assets.background.src = '/assets/backgrounds/space-bg.jpg';
-assets.introBackground.src = '/assets/backgrounds/intro-bg.jpg';
-assets.playerSprite.src = '/assets/sprites/player.png';
-assets.orb.src = '/assets/sprites/orb.png';
-assets.portal.src = '/assets/sprites/portal.png';
-assets.enemy.src = '/assets/sprites/enemy.png';
-assets.heartFull.src = '/assets/sprites/heart-full.png';
-assets.prisoner.src = '/assets/sprites/prisoner.png';
-assets.queenCat.src = '/assets/sprites/queen-cat.png';
-assets.spike.src = '/assets/sprites/spike.png';
-assets.rockPlatform.src = '/assets/sprites/rock-platform.png';
-assets.sounds.menuMusic.src = '/assets/sounds/menu-music.mp3';
-assets.sounds.bgMusic.src = '/assets/sounds/bg-music.mp3';
-assets.sounds.collect.src = '/assets/sounds/collect.mp3';
-assets.sounds.death.src = '/assets/sounds/death.mp3';
-assets.sounds.fireball.src = '/assets/sounds/fireball.mp3';
-assets.sounds.hit.src = '/assets/sounds/hit.mp3';
-assets.sounds.jump.src = '/assets/sounds/jump.mp3';
-assets.sounds.portal.src = '/assets/sounds/portal.mp3';
-assets.sounds.win.src = '/assets/sounds/win.mp3';
-assets.sounds.enemyKill.src = '/assets/sounds/enemy-kill.mp3';
+assets.background.src = `${ASSET_BASE}backgrounds/space-bg.jpg`;
+assets.introBackground.src = `${ASSET_BASE}backgrounds/intro-bg.jpg`;
+assets.playerSprite.src = `${ASSET_BASE}sprites/player.png`;
+assets.orb.src = `${ASSET_BASE}sprites/orb.png`;
+assets.portal.src = `${ASSET_BASE}sprites/portal.png`;
+assets.enemy.src = `${ASSET_BASE}sprites/enemy.png`;
+assets.heartFull.src = `${ASSET_BASE}sprites/heart-full.png`;
+assets.prisoner.src = `${ASSET_BASE}sprites/prisoner.png`;
+assets.queenCat.src = `${ASSET_BASE}sprites/queen-cat.png`;
+assets.spike.src = `${ASSET_BASE}sprites/spike.png`;
+assets.rockPlatform.src = `${ASSET_BASE}sprites/rock-platform.png`;
+assets.sounds.menuMusic.src = `${ASSET_BASE}sounds/menu-music.mp3`;
+assets.sounds.bgMusic.src = `${ASSET_BASE}sounds/bg-music.mp3`;
+assets.sounds.collect.src = `${ASSET_BASE}sounds/collect.mp3`;
+assets.sounds.death.src = `${ASSET_BASE}sounds/death.mp3`;
+assets.sounds.fireball.src = `${ASSET_BASE}sounds/fireball.mp3`;
+assets.sounds.hit.src = `${ASSET_BASE}sounds/hit.mp3`;
+assets.sounds.jump.src = `${ASSET_BASE}sounds/jump.mp3`;
+assets.sounds.portal.src = `${ASSET_BASE}sounds/portal.mp3`;
+assets.sounds.win.src = `${ASSET_BASE}sounds/win.mp3`;
+assets.sounds.enemyKill.src = `${ASSET_BASE}sounds/enemy-kill.mp3`;
 
 const player = {
     x: 100,
